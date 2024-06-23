@@ -9,7 +9,7 @@ exports.validate = (method) => {
         body('title').notEmpty().withMessage('Title is required'),
         body('content').notEmpty().withMessage('Content is required'),
         body('category_id').notEmpty().withMessage('Category is required'),
-        body('status').notEmpty().withMessage('Status is required')
+        body('published').notEmpty().withMessage('published is required')
       ];
     }
     case 'updateArticle': {
@@ -17,7 +17,7 @@ exports.validate = (method) => {
         body('title').optional().notEmpty().withMessage('Title is required'),
         body('content').optional().notEmpty().withMessage('Content is required'),
         body('category_id').optional().notEmpty().withMessage('Category is required'),
-        body('status').optional().notEmpty().withMessage('Status is required')
+        body('published').optional().notEmpty().withMessage('published is required')
       ];
     }
   }
@@ -26,7 +26,7 @@ exports.validate = (method) => {
 // Lấy danh sách tất cả các bài viết
 exports.getAllArticles = async (req, res, next) => {
   try {
-    const articles = await Article.find().populate('author_id category_id tags');
+    const articles = await Article.find().populate('author_id category_id');
     res.json(articles);
   } catch (err) {
     next(err);
@@ -36,7 +36,7 @@ exports.getAllArticles = async (req, res, next) => {
 // Lấy một bài viết theo ID
 exports.getArticleById = async (req, res, next) => {
   try {
-    const article = await Article.findById(req.params.id).populate('author_id category_id tags');
+    const article = await Article.findById(req.params.id).populate('author_id category_id');
     if (!article) {
       return res.status(404).json({ message: 'Article not found' });
     }
@@ -60,9 +60,11 @@ exports.createArticle = async (req, res, next) => {
       publicationDate: new Date(),
       author_id: req.user.id,
       category_id: req.body.category_id,
-      status: req.body.status,
-      tags: req.body.tags,
-      dateUpdated: new Date()
+      published: req.body.published,
+      dateUpdated: new Date(),
+      thumbnail: req.body.thumbnail,
+      slug:req.body.slug
+
     });
 
     const savedArticle = await newArticle.save();
