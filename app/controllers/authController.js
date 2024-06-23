@@ -18,6 +18,11 @@ exports.validate = (method) => {
         body('password').notEmpty().withMessage('Password is required')
       ];
     }
+    case 'changePassword':
+      return [
+        body('currentPassword').not().isEmpty().withMessage('Current password is required'),
+        body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters long'),
+      ];
   }
 };
 
@@ -98,3 +103,34 @@ exports.me = async (req, res, next) => {
     res.status(500).json({ message: 'An error occurred while fetching user data.' });
   }
 }
+
+exports.changePassword = async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.userId; 
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Current password is incorrect' });
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedNewPassword;
+    user.dateUpdated = new Date();
+
+    await user.save();
+
+    res.status(200).json({ message: 'Password changed successfully' });
+  } catch (err) {
+    next(err);
+  }
+};
