@@ -9,7 +9,9 @@ exports.validate = (method) => {
       return [
         body('username').notEmpty().withMessage('Username is required'),
         body('email').isEmail().withMessage('Email is invalid'),
-        body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long')
+        body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+        body('fullName').notEmpty().withMessage('Full name is required'),
+        body('dateOfBirth').notEmpty().withMessage('Date of birth is required'),
       ];
     }
     case 'login': {
@@ -87,7 +89,7 @@ exports.login = async (req, res, next) => {
 
 exports.me = async (req, res, next) => {
   try {
-    const user = await User.findById(req.userId).select('-password');
+    const user = await User.findById(req.user._id).select('-password');
 
     if (!user) {
       return res.status(401).json({ message: 'User not found' });

@@ -1,5 +1,6 @@
 const { body, validationResult } = require('express-validator');
 const Category = require('../models/categoryModel');
+const Article = require('../models/articleModel');
 
 // Validation rules
 exports.validate = (method) => {
@@ -22,8 +23,18 @@ exports.validate = (method) => {
 // Lấy danh sách tất cả các category
 exports.getAllCategories = async (req, res, next) => {
   try {
-    const categories = await Category.find();
+    const categories = await Category.find().populate('articles');
     res.json(categories);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// lấy danh sách bài viết theo category
+exports.getArticlesByCategory = async (req, res, next) => {
+  try {
+    const articles = await Article.find({ category: req.params.id }).populate('author category');
+    res.json(articles);
   } catch (err) {
     next(err);
   }

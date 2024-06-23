@@ -2,11 +2,12 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 const verifyToken = require('../middleware/authMiddleware');
+const hasRole = require('../middleware/hasRole');
 
-router.get('/', verifyToken, userController.getAllUsers);
-router.get('/:id', verifyToken, userController.getUserById);
-// router.post('/', verifyToken, articleController.validate('createArticle'), articleController.createArticle);
-// router.put('/:id', verifyToken, articleController.validate('updateArticle'), articleController.updateArticle);
-// router.delete('/:id', verifyToken, articleController.deleteArticle);
+router.get('/', verifyToken, hasRole("ADMIN"), userController.getAllUsers);
+router.get('/:id', verifyToken, hasRole("ADMIN"), userController.getUserById);
+router.post('/', verifyToken, hasRole("ADMIN"), userController.validate("createUser"), userController.createUser);
+router.put('/:id', verifyToken, hasRole("ADMIN"), userController.validate("updateUser"), userController.updateUser);
+router.delete('/:id', verifyToken, hasRole("ADMIN"), userController.deleteUser);
 
 module.exports = router;
