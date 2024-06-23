@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const createError = require('http-errors');
+const cors = require('cors');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -14,14 +15,20 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
   .catch(err => console.error('Could not connect to MongoDB', err));
 
 // Middleware
+app.use(cors());
 app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const authRoute = require('./app/routes/authRoutes');
-app.use('/api/auth', authRoute);
 const categoryRoutes = require('./app/routes/categoryRoutes');
+const articleRoutes = require('./app/routes/articleRoutes');
+const userRoutes = require('./app/routes/userRoutes');
+
+app.use('/api/auth', authRoute);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/articles', articleRoutes);
+app.use('/api/users', userRoutes);
 
 // Xử lý lỗi 404
 app.use((req, res, next) => {

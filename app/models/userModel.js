@@ -6,8 +6,8 @@ const userSchema = new Schema({
   password: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   fullName: { type: String, required: true },
-  dateOfBirth: { type: Date, required: true },
-  role: { type: String, required: true },
+  dateOfBirth: { type: Date },
+  role: { type: String, default: 'USER' },
   dateRegistered: { type: Date, default: Date.now },
   dateUpdated: { type: Date }
 });
