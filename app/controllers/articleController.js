@@ -8,16 +8,16 @@ exports.validate = (method) => {
       return [
         body('title').notEmpty().withMessage('Title is required'),
         body('content').notEmpty().withMessage('Content is required'),
-        body('_id').notEmpty().withMessage(' is required'),
-        body('published').notEmpty().withMessage('Published is required')
+        body('category').notEmpty().withMessage('Category is required'),
+        body('published').notEmpty().withMessage('published is required')
       ];
     }
     case 'updateArticle': {
       return [
         body('title').optional().notEmpty().withMessage('Title is required'),
         body('content').optional().notEmpty().withMessage('Content is required'),
-        body('_id').optional().notEmpty().withMessage(' is required'),
-        body('published').optional().notEmpty().withMessage('Published is required')
+        body('category').optional().notEmpty().withMessage('Category is required'),
+        body('published').optional().notEmpty().withMessage('published is required')
       ];
     }
   }
@@ -125,12 +125,11 @@ exports.createArticle = async (req, res, next) => {
       content: req.body.content,
       publicationDate: new Date(),
       author: req.user.id,
-      _id: req.body._id,
+      category: req.body.category,
       published: req.body.published,
-      slug: req.body.slug,
+      dateUpdated: new Date(),
       thumbnail: req.body.thumbnail,
-      tags: req.body.tags,
-      dateUpdated: new Date()
+      slug:req.body.slug
     });
 
     const savedArticle = await newArticle.save();
