@@ -15,7 +15,12 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
   .catch(err => console.error('Could not connect to MongoDB', err));
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+  origin: 'http://localhost:3000',
+  credentials: true, // Cho phép gửi cookies
+};
+
+app.use(cors(corsOptions));
 app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -25,12 +30,16 @@ const categoryRoutes = require('./app/routes/categoryRoutes');
 const articleRoutes = require('./app/routes/articleRoutes');
 const userRoutes = require('./app/routes/userRoutes');
 const dashboardRoutes = require('./app/routes/dashboardRoutes');
+const commentRoutes = require('./app/routes/commentRoutes');
+
 
 app.use('/api/auth', authRoute);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/comment', commentRoutes);
+
 
 // Xử lý lỗi 404
 app.use((req, res, next) => {
