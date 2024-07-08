@@ -87,6 +87,11 @@ exports.updateUser = async (req, res, next) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
+    // Kiểm tra nếu người dùng không phải admin và không phải là chủ tài khoản
+    if (req.user.role !== 'ADMIN' && req.user._id.toString() !== req.params.id) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
     const { username, email, fullName, dateOfBirth, role } = req.body;
 
     const updateData = {
@@ -96,7 +101,7 @@ exports.updateUser = async (req, res, next) => {
       dateOfBirth,
       role,
       dateUpdated: new Date()
-    }
+    };
 
     if (req.body.password) {
       const hashedPassword = await bcrypt.hash(req.body.password, 10);
@@ -109,7 +114,12 @@ exports.updateUser = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-}
+};
+
+
+
+
+
 
 exports.deleteUser = async (req, res, next) => {
   try {

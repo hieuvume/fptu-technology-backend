@@ -39,18 +39,29 @@ exports.getAllComments = async (req, res, next) => {
     }
   };
 
-// Lấy bình luận theo ID
-exports.getCommentById = async (req, res, next) => {
+// Lấy bình luận theo Article ID
+exports.getCommentsByArticleId = async (req, res, next) => {
   try {
-    const comment = await Comment.findById(req.params.id).populate('article_id user_id');
-    if (!comment) {
-      return res.status(404).json({ message: 'Comment not found' });
-    }
-    res.json(comment);
+    const comments = await Comment.find({ article_id: req.params.article_id }).populate('user_id');
+    res.json(comments);
   } catch (err) {
     next(err);
   }
 };
+
+// Lấy bình luận theo ID của article
+exports.getCommentById = async (req, res, next) => {
+  try {
+    const comments = await Comment.find({ article_id: req.params.id }).populate('user_id');
+    if (!comments || comments.length === 0) {
+      return res.status(404).json({ message: 'No comments found for this article ID' });
+    }
+    res.json(comments);
+  } catch (err) {
+    next(err);
+  }
+};
+
 
 // Lấy bình luận theo Article ID
 exports.getCommentsByArticleId = async (req, res, next) => {
