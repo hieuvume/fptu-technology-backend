@@ -25,12 +25,14 @@ const categoryRoutes = require('./app/routes/categoryRoutes');
 const articleRoutes = require('./app/routes/articleRoutes');
 const userRoutes = require('./app/routes/userRoutes');
 const dashboardRoutes = require('./app/routes/dashboardRoutes');
+const applicationRoutes = require('./app/routes/applicationRoutes');
 
 app.use('/api/auth', authRoute);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/application', applicationRoutes);
 
 // Xử lý lỗi 404
 app.use((req, res, next) => {
