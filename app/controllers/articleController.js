@@ -175,3 +175,27 @@ exports.deleteArticle = async (req, res, next) => {
     next(err);
   }
 };
+
+//list bài viết cần duyệt
+exports.getPendingArticles = async (req, res, next) => {
+  try {
+    const pendingArticles = await Article.find({ status: "pending" }).populate('author category');
+    res.json(pendingArticles);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// duyệt bài viết
+
+exports.approveArticle = async (req, res, next) => {
+  try {
+    const approvedArticle = await Article.findByIdAndUpdate(req.params.articleId, { status: "published" }, { new: true });
+    if (!approvedArticle) {
+      return res.status(404).json({ message: 'Article not found' });
+    }
+    res.json(approvedArticle);
+  } catch (err) {
+    next(err);
+  }
+};

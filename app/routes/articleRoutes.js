@@ -15,4 +15,6 @@ router.get('/list/trending', articleController.getTrendingArticles);
 router.get('/details/:slug', articleController.getArticleBySlug);
 router.get('/related/:slug', articleController.getRelatedArticles);
 
+// router.get('/pending', verifyToken, articleController.getPendingArticles)
+
 module.exports = router;
