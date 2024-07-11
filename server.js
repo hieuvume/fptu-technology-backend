@@ -17,7 +17,12 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
   .catch(err => console.error('Could not connect to MongoDB', err));
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+  origin: 'http://localhost:3000',
+  credentials: true, // Cho phép gửi cookies
+};
+
+app.use(cors(corsOptions));
 app.use(morgan('dev'));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
@@ -31,6 +36,9 @@ const articleRoutes = require('./app/routes/articleRoutes');
 const userRoutes = require('./app/routes/userRoutes');
 const dashboardRoutes = require('./app/routes/dashboardRoutes');
 const applicationRoutes = require('./app/routes/applicationRoutes');
+const commentRoutes = require('./app/routes/commentRoutes');
+
+
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/auth', authRoute);
 app.use('/api/categories', categoryRoutes);
@@ -38,6 +46,8 @@ app.use('/api/articles', articleRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/application', applicationRoutes);
+app.use('/api/comment', commentRoutes);
+
 
 // Xử lý lỗi 404
 app.use((req, res, next) => {

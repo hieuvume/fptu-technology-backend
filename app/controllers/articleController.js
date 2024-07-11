@@ -162,8 +162,9 @@ exports.createArticle = async (req, res, next) => {
       category: req.body.category,
       published: req.body.published,
       dateUpdated: new Date(),
-      thumbnail: thumbnailUrl,
-      slug: req.body.slug
+      thumbnail: req.body.thumbnail,
+      slug:req.body.slug,
+      comments:req .body.comments
     });
 
     const savedArticle = await newArticle.save();
