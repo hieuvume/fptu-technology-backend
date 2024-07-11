@@ -7,7 +7,7 @@ const exceptRoles = require('../middleware/exceptRole');
 
 /**
  * @swagger
- * //apiapi/articles:
+ * /apiapi/articles:
  *   get:
  *     summary: Get all articles
  *     tags: [Articles]
