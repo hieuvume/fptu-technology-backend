@@ -12,6 +12,9 @@ exports.validate = (method) => {
         body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
         body('fullName').notEmpty().withMessage('Full name is required'),
         body('dateOfBirth').notEmpty().withMessage('Date of birth is required'),
+        body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+        body('fullName').notEmpty().withMessage('Full name is required'),
+        body('dateOfBirth').notEmpty().withMessage('Date of birth is required'),
       ];
     }
     case 'login': {
@@ -20,6 +23,11 @@ exports.validate = (method) => {
         body('password').notEmpty().withMessage('Password is required')
       ];
     }
+    case 'changePassword':
+      return [
+        body('currentPassword').not().isEmpty().withMessage('Current password is required'),
+        body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters long'),
+      ];
     case 'changePassword':
       return [
         body('currentPassword').not().isEmpty().withMessage('Current password is required'),
@@ -94,6 +102,7 @@ exports.login = async (req, res, next) => {
 
 exports.me = async (req, res, next) => {
   try {
+    const user = await User.findById(req.user._id).select('-password');
     const user = await User.findById(req.user._id).select('-password');
 
     if (!user) {

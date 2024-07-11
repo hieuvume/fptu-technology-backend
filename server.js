@@ -5,6 +5,8 @@ const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const createError = require('http-errors');
 const cors = require('cors');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./swaggerOptions'); // Import the Swagger options
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -17,22 +19,23 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
 // Middleware
 app.use(cors());
 app.use(morgan('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+
+// Swagger setup
+
 
 const authRoute = require('./app/routes/authRoutes');
 const categoryRoutes = require('./app/routes/categoryRoutes');
 const articleRoutes = require('./app/routes/articleRoutes');
 const userRoutes = require('./app/routes/userRoutes');
 const dashboardRoutes = require('./app/routes/dashboardRoutes');
-const applicationRoutes = require('./app/routes/applicationRoutes');
-
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/auth', authRoute);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/articles', articleRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/application', applicationRoutes);
 
 // Xử lý lỗi 404
 app.use((req, res, next) => {
@@ -44,7 +47,7 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500);
   res.json({
     message: err.message,
-    error: req.app.get('env') === 'development' ? err : {}
+    error: req.app.get('env') === 'development' ? err : {},
   });
 });
 

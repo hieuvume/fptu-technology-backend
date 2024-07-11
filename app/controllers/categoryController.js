@@ -97,3 +97,12 @@ exports.deleteCategory = async (req, res, next) => {
     next(err);
   }
 };
+exports.getdata=async(req,res,next) => {
+  try{
+    res.status(200).json({
+      message:"succse"
+    })
+  }catch(err){
+    next(err)
+  }
+}

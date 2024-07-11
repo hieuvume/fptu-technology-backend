@@ -1,5 +1,6 @@
 const Article = require('../models/articleModel');
 const { body, validationResult } = require('express-validator');
+const googleDriveService = require('../services/googleDriveService');
 
 // Validation rules
 exports.validate = (method) => {
@@ -113,11 +114,44 @@ exports.getRelatedArticles = async (req, res, next) => {
 };
 
 // Tạo một bài viết mới
+// exports.createArticle = async (req, res, next) => {
+//   try {
+//     const errors = validationResult(req);
+//     if (!errors.isEmpty()) {
+//       return res.status(400).json({ errors: errors.array() });
+//     }
+
+//     const newArticle = new Article({
+//       title: req.body.title,
+//       content: req.body.content,
+//       publicationDate: new Date(),
+//       author: req.user.id,
+//       category: req.body.category,
+//       published: req.body.published,
+//       dateUpdated: new Date(),
+//       thumbnail: req.body.thumbnail,
+//       slug:req.body.slug
+//     });
+
+//     const savedArticle = await newArticle.save();
+//     res.status(201).json(savedArticle);
+//   } catch (err) {
+//     next(err);
+//   }
+// };
 exports.createArticle = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
+    }
+
+    let thumbnailUrl = '';
+    if (req.body.thumbnailBase64) {
+      const base64Data = req.body.thumbnailBase64;
+      const fileName = req.body.thumbnailName;
+      const folderId = await googleDriveService.findOrCreateFolder('Thumbnails');
+      thumbnailUrl = await googleDriveService.uploadFileToDrive(base64Data, fileName, folderId);
     }
 
     const newArticle = new Article({
@@ -128,8 +162,8 @@ exports.createArticle = async (req, res, next) => {
       category: req.body.category,
       published: req.body.published,
       dateUpdated: new Date(),
-      thumbnail: req.body.thumbnail,
-      slug:req.body.slug
+      thumbnail: thumbnailUrl,
+      slug: req.body.slug
     });
 
     const savedArticle = await newArticle.save();
@@ -138,7 +172,6 @@ exports.createArticle = async (req, res, next) => {
     next(err);
   }
 };
-
 // Cập nhật một bài viết
 exports.updateArticle = async (req, res, next) => {
   try {
@@ -170,6 +203,35 @@ exports.deleteArticle = async (req, res, next) => {
       return res.status(404).json({ message: 'Article not found' });
     }
     res.status(204).end();
+  } catch (err) {
+    next(err);
+  }
+};
+//getPending
+
+
+exports.searchArticles = async (req, res, next) => {
+  try {
+    const { title, author, category } = req.query;
+    const searchQuery = {};
+
+    if (title) {
+      searchQuery.title = { $regex: title, $options: 'iu' }; 
+    }
+    if (author) {
+      searchQuery.author = author;
+    }
+
+    if (category) {
+      searchQuery.category = category;
+    }
+
+    const articles = await Article.find(searchQuery)
+                                  .populate('author', 'name') 
+                                  .populate('category', 'name')
+                                
+
+    res.status(200).json(articles);
   } catch (err) {
     next(err);
   }
