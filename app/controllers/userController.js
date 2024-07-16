@@ -116,11 +116,6 @@ exports.updateUser = async (req, res, next) => {
   }
 };
 
-
-
-
-
-
 exports.deleteUser = async (req, res, next) => {
   try {
     await User.findByIdAndDelete(req.params.id);

@@ -3,12 +3,13 @@ const Schema = mongoose.Schema;
 
 const articleSchema = new Schema({
   title: { type: String, required: true },
+  short_content: { type: String, required: true },
   slug: { type: String, required: true },
   thumbnail: { type: String, required: true },
   content: { type: String, required: true },
   author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   category: { type: Schema.Types.ObjectId, ref: 'Category', required: true },
-  // status: { type: String, required: true },
+  status: { type: String, required: true },
   published: { type: Boolean, required: true },
   comments: [{ type: Schema.Types.ObjectId, ref: 'Comment' }],
   pinned: { type: Boolean, default: false },

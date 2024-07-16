@@ -27,22 +27,22 @@ exports.validate = (method) => {
 exports.getTrendingArticles = async (req, res, next) => {
   try {
     // Lấy bài viết được pinned nếu có
-    let largeArticle = await Article.findOne({ pinned: true }).populate('author category');
+    let largeArticle = await Article.findOne({ pinned: true, status: 'published' }).populate('author category');
 
     // Nếu không có bài viết nào được pinned, lấy bài viết có nhiều lượt views nhất
     if (!largeArticle) {
-      largeArticle = await Article.findOne().sort({ views: -1 }).populate('author category');
+      largeArticle = await Article.findOne({ status: 'published' }).sort({ views: -1 }).populate('author category');
     }
 
     // Lấy 3 bài viết mới nhất và có nhiều lượt views nhất, không bao gồm bài viết large
-    const mediumArticles = await Article.find({ _id: { $ne: largeArticle._id } })
+    const mediumArticles = await Article.find({ _id: { $ne: largeArticle._id }, status: 'published' })
       .sort({ views: -1, publicationDate: -1 })
       .limit(3)
       .populate('author category');
 
     // Lấy 5 bài viết mới nhất và có nhiều lượt views nhất, không bao gồm bài viết large và medium
     const mediumArticleIds = mediumArticles.map(article => article._id);
-    const smallArticles = await Article.find({ _id: { $nin: [largeArticle._id, ...mediumArticleIds] } })
+    const smallArticles = await Article.find({ _id: { $nin: [largeArticle._id, ...mediumArticleIds] }, status: 'published' })
       .sort({ views: -1, publicationDate: -1 })
       .limit(5)
       .populate('author category');
@@ -58,10 +58,25 @@ exports.getTrendingArticles = async (req, res, next) => {
 };
 
 
+exports.getManageArticles = async (req, res, next) => {
+  try {
+    if (req.user.role === 'ADMIN') {
+      const articles = await Article.find().populate('author category').sort({ publicationDate: -1 });
+      res.json(articles);
+    } else {
+      const articles = await Article.find({ author: req.user.id }).populate('author category').sort({ publicationDate: -1 });
+      res.json(articles);
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
+
 // Lấy danh sách tất cả các bài viết
 exports.getAllArticles = async (req, res, next) => {
   try {
-    const articles = await Article.find().populate('author category');
+    const articles = await Article.find({ status: 'published' }).populate('author category').sort({ publicationDate: -1 });
     res.json(articles);
   } catch (err) {
     next(err);
@@ -104,7 +119,8 @@ exports.getRelatedArticles = async (req, res, next) => {
 
     const relatedArticles = await Article.find({
       _id: { $ne: article._id },
-      category: article.category
+      category: article.category,
+      status: 'published'
     }).limit(3).populate('author _id');
 
     res.json(relatedArticles);
@@ -114,31 +130,6 @@ exports.getRelatedArticles = async (req, res, next) => {
 };
 
 // Tạo một bài viết mới
-// exports.createArticle = async (req, res, next) => {
-//   try {
-//     const errors = validationResult(req);
-//     if (!errors.isEmpty()) {
-//       return res.status(400).json({ errors: errors.array() });
-//     }
-
-//     const newArticle = new Article({
-//       title: req.body.title,
-//       content: req.body.content,
-//       publicationDate: new Date(),
-//       author: req.user.id,
-//       category: req.body.category,
-//       published: req.body.published,
-//       dateUpdated: new Date(),
-//       thumbnail: req.body.thumbnail,
-//       slug:req.body.slug
-//     });
-
-//     const savedArticle = await newArticle.save();
-//     res.status(201).json(savedArticle);
-//   } catch (err) {
-//     next(err);
-//   }
-// };
 exports.createArticle = async (req, res, next) => {
   try {
     const errors = validationResult(req);
@@ -146,25 +137,25 @@ exports.createArticle = async (req, res, next) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    let thumbnailUrl = '';
-    if (req.body.thumbnailBase64) {
-      const base64Data = req.body.thumbnailBase64;
-      const fileName = req.body.thumbnailName;
-      const folderId = await googleDriveService.findOrCreateFolder('Thumbnails');
-      thumbnailUrl = await googleDriveService.uploadFileToDrive(base64Data, fileName, folderId);
-    }
-
-    const newArticle = new Article({
+    const articleData = {
       title: req.body.title,
+      short_content: req.body.short_content,
       content: req.body.content,
       publicationDate: new Date(),
       author: req.user.id,
       category: req.body.category,
       published: req.body.published,
       dateUpdated: new Date(),
-      thumbnail: thumbnailUrl,
-      slug: req.body.slug
-    });
+      thumbnail: req.body.thumbnail,
+      slug: req.body.slug,
+      status: 'published'
+    }
+
+    if (req.user.role === 'CONTRIBUTOR') {
+      articleData.status = 'pending';
+    }
+
+    const newArticle = new Article(articleData);
 
     const savedArticle = await newArticle.save();
     res.status(201).json(savedArticle);
@@ -172,12 +163,17 @@ exports.createArticle = async (req, res, next) => {
     next(err);
   }
 };
+
 // Cập nhật một bài viết
 exports.updateArticle = async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
+    }
+
+    if (!req.thumbnail) {
+      delete req.body.thumbnail;
     }
 
     const updatedArticle = await Article.findByIdAndUpdate(req.params.id, {
@@ -216,7 +212,7 @@ exports.searchArticles = async (req, res, next) => {
     const searchQuery = {};
 
     if (title) {
-      searchQuery.title = { $regex: title, $options: 'iu' }; 
+      searchQuery.title = { $regex: title, $options: 'iu' };
     }
     if (author) {
       searchQuery.author = author;
@@ -226,10 +222,12 @@ exports.searchArticles = async (req, res, next) => {
       searchQuery.category = category;
     }
 
+    searchQuery.status = 'published';
+
     const articles = await Article.find(searchQuery)
-                                  .populate('author', 'name') 
-                                  .populate('category', 'name')
-                                
+      .populate('author', 'name')
+      .populate('category', 'name')
+
 
     res.status(200).json(articles);
   } catch (err) {
@@ -260,3 +258,17 @@ exports.approveArticle = async (req, res, next) => {
     next(err);
   }
 };
+
+
+exports.reviewArticle = async (req, res, next) => {
+  try {
+    const status = req.state ? "published" : 'rejected';
+    const reviewedArticle = await Article.findByIdAndUpdate(req.params.id, { status: status }, { new: true });
+    if (!reviewedArticle) {
+      return res.status(404).json({ message: 'Article not found' });
+    }
+    res.json(reviewedArticle);
+  } catch (err) {
+    next(err);
+  }
+}

@@ -4,6 +4,11 @@ const articleController = require('../controllers/articleController');
 const verifyToken = require('../middleware/authMiddleware');
 const hasRole = require('../middleware/hasRole');
 const exceptRoles = require('../middleware/exceptRole');
+const authMiddleware = require('../middleware/authMiddleware');
+
+router.get('/manage', authMiddleware, articleController.getManageArticles);
+
+router.put('/:id/review', verifyToken, hasRole("MODERATOR"), articleController.reviewArticle)
 
 /**
  * @swagger
@@ -65,11 +70,11 @@ router.get('/:id', verifyToken, exceptRoles("USER"), articleController.getArticl
  *         description: Bad request
  */
 router.post(
-    '/',
-    verifyToken,
-    hasRole('ADMIN', 'AUTHOR', 'CONTRIBUTOR'),
-    articleController.validate('createArticle'),
-    articleController.createArticle
+  '/',
+  verifyToken,
+  hasRole('ADMIN', 'AUTHOR', 'CONTRIBUTOR'),
+  articleController.validate('createArticle'),
+  articleController.createArticle
 );
 
 /**
@@ -106,10 +111,10 @@ router.post(
  *         description: Article not found
  */
 router.put('/:id',
-    verifyToken,
-    hasRole('ADMIN', 'AUTHOR', 'CONTRIBUTOR'),
-    articleController.validate('updateArticle'),
-    articleController.updateArticle);
+  verifyToken,
+  hasRole('ADMIN', 'AUTHOR', 'CONTRIBUTOR'),
+  articleController.validate('updateArticle'),
+  articleController.updateArticle);
 
 /**
  * @swagger
@@ -131,9 +136,9 @@ router.put('/:id',
  *         description: Article not found
  */
 router.delete('/:id',
-    verifyToken,
-    hasRole('ADMIN', 'MODERATOR'),
-    articleController.deleteArticle);
+  verifyToken,
+  hasRole('ADMIN', 'MODERATOR'),
+  articleController.deleteArticle);
 
 /**
  * @swagger
@@ -146,7 +151,7 @@ router.delete('/:id',
  *         description: List of trending articles
  */
 router.get('/list/trending',
-    articleController.getTrendingArticles);
+  articleController.getTrendingArticles);
 
 /**
  * @swagger
@@ -168,7 +173,7 @@ router.get('/list/trending',
  *         description: Article not found
  */
 router.get('/details/:slug',
-    articleController.getArticleBySlug);
+  articleController.getArticleBySlug);
 
 /**
  * @swagger
@@ -190,7 +195,7 @@ router.get('/details/:slug',
  *         description: Article not found
  */
 router.get('/related/:slug',
-    articleController.getRelatedArticles);
+  articleController.getRelatedArticles);
 
 /**
  * @swagger
@@ -209,6 +214,6 @@ router.get('/related/:slug',
  *         description: List of articles matching the search criteria
  */
 router.get('/search/articles',
-    articleController.searchArticles);
+  articleController.searchArticles);
 
 module.exports = router;
