@@ -9,7 +9,8 @@ const userSchema = new Schema({
   dateOfBirth: { type: Date },
   role: { type: String, default: 'USER' },
   dateRegistered: { type: Date, default: Date.now },
-  dateUpdated: { type: Date }
+  dateUpdated: { type: Date },
+  status: { type: Boolean, default: true },
 });
 
 module.exports = mongoose.model('User', userSchema);

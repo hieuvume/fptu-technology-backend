@@ -59,7 +59,8 @@ exports.register = async (req, res, next) => {
       fullName,
       dateOfBirth,
       dateRegistered: new Date(),
-      dateUpdated: new Date()
+      dateUpdated: new Date(),
+      status: true,
     });
 
     const savedUser = await newUser.save();
@@ -84,6 +85,9 @@ exports.login = async (req, res, next) => {
     const user = await User.findOne({ username });
     if (!user) {
       return res.status(400).json({ message: 'Invalid username or password' });
+    }
+    if (user.status === false) {
+      return res.status(403).json({ message: 'Your account is banned'});
     }
 
     const isMatch = await bcrypt.compare(password, user.password);

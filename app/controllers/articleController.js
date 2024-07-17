@@ -208,27 +208,16 @@ exports.deleteArticle = async (req, res, next) => {
 
 exports.searchArticles = async (req, res, next) => {
   try {
-    const { title, author, category } = req.query;
+    const { title } = req.query;
     const searchQuery = {};
 
     if (title) {
       searchQuery.title = { $regex: title, $options: 'iu' };
     }
-    if (author) {
-      searchQuery.author = author;
-    }
-
-    if (category) {
-      searchQuery.category = category;
-    }
 
     searchQuery.status = 'published';
 
     const articles = await Article.find(searchQuery)
-      .populate('author', 'name')
-      .populate('category', 'name')
-
-
     res.status(200).json(articles);
   } catch (err) {
     next(err);

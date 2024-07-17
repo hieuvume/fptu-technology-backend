@@ -10,6 +10,8 @@ router.get('/:id', verifyToken, hasRole("ADMIN"), userController.getUserById);
 router.post('/', verifyToken, hasRole("ADMIN"), userController.validate("createUser"), userController.createUser);
 router.put('/:id', verifyToken, hasRole("ADMIN"), userController.validate("updateUser"), userController.updateUser);
 router.delete('/:id', verifyToken, hasRole("ADMIN"), userController.deleteUser);
+router.put('/ban/:id', verifyToken, hasRole("ADMIN"), userController.banUser);
+
 
 // Routes cho User
 router.put('/me/:id', verifyToken, userController.validate("updateUser"), userController.updateUser);
