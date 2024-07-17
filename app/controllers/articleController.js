@@ -27,7 +27,7 @@ exports.validate = (method) => {
 exports.getTrendingArticles = async (req, res, next) => {
   try {
     // Lấy bài viết được pinned nếu có
-    let largeArticle = await Article.findOne({ pinned: true, status: 'published' }).populate('author category');
+    let largeArticle = await Article.findOne({ pinned: true, status: 'published', published: true }).populate('author category');
 
     // Nếu không có bài viết nào được pinned, lấy bài viết có nhiều lượt views nhất
     if (!largeArticle) {
@@ -35,14 +35,14 @@ exports.getTrendingArticles = async (req, res, next) => {
     }
 
     // Lấy 3 bài viết mới nhất và có nhiều lượt views nhất, không bao gồm bài viết large
-    const mediumArticles = await Article.find({ _id: { $ne: largeArticle._id }, status: 'published' })
+    const mediumArticles = await Article.find({ _id: { $ne: largeArticle._id }, status: 'published', published: true })
       .sort({ views: -1, publicationDate: -1 })
       .limit(3)
       .populate('author category');
 
     // Lấy 5 bài viết mới nhất và có nhiều lượt views nhất, không bao gồm bài viết large và medium
     const mediumArticleIds = mediumArticles.map(article => article._id);
-    const smallArticles = await Article.find({ _id: { $nin: [largeArticle._id, ...mediumArticleIds] }, status: 'published' })
+    const smallArticles = await Article.find({ _id: { $nin: [largeArticle._id, ...mediumArticleIds] }, status: 'published', published: true })
       .sort({ views: -1, publicationDate: -1 })
       .limit(5)
       .populate('author category');
