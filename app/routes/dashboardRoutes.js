@@ -15,7 +15,7 @@ const router = express.Router();
  *       200:
  *         description: Dashboard statistics retrieved successfully
  */
-router.get('/', getDashboardStats);
+router.get('/', verifyToken, hasRole('ADMIN') , getDashboardStats);
 router.get('/pending', verifyToken, hasRole('ADMIN', 'MODERATOR'), getPendingArticles);
 router.put('/pending/:articleId', verifyToken, hasRole('ADMIN', 'MODERATOR'), approveArticle);
 
